@@ -17,13 +17,17 @@ way of detection of a selection change within the parent component.
 
 # Messages
 @docs Msg
+
+# View function
+@docs view
+
+# Update function
+@docs update
 -}
 
 import Html exposing (Html, div, p, span, text)
-import Html.App as Html
 import Html.Attributes exposing (id, class)
 import Html.Events exposing (onMouseDown, onMouseUp, onMouseEnter, onMouseLeave)
-import Html.Lazy exposing (lazy)
 import String
 import List
 import List.Extra
@@ -210,6 +214,8 @@ viewTextElement (no, (textElement, isSelected)) =
 -- UPDATE
 
 
+{-| The selectable text update function.
+-}
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of

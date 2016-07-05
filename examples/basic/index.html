@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <title>elm-selectable-text basic example</title>
+
+    <style type="text/css">
+      html {
+        box-sizing: border-box;
+      }
+
+      *, *:before, *:after {
+        box-sizing: inherit;
+      }
+
+      body {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        background: #FAFAFA;
+        color: #111;
+        line-height: 22px;
+        margin: 2em;
+      }
+
+      h1 {
+        margin-bottom: 1em; 
+      }
+      
+      #my-text {
+        font-family: Georgia, Times, Times New Roman, serif;
+        font-size: 18px;
+        line-height: 24px;
+        background: #FFF;
+        padding: 0.1em 1.5em;
+        box-shadow: 0 0 10px #DDD;
+        text-align: justify;
+        text-justify: inter-word;
+        max-width: 900px;
+
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      .selected {
+        background: #FFFFBB;
+      }
+
+      #phrase {
+        font-style: italic;
+        margin-left: 0.2em; 
+        background: #FFF;
+        padding: 0.1em 0.3em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>elm-selectable-text basic example</h1>
+    <div id="elm-target">
+    </div>
+
+    <script src="basic.js"></script>
+    <script>
+      Elm.Basic.embed(document.getElementById("elm-target"));
+    </script>
+  </body>
+</html>
