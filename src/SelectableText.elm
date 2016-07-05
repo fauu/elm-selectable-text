@@ -6,8 +6,8 @@ module SelectableText exposing
   , update
   )
 
-{-| This is a selectable text component that renders provided text as a series
-of paragraphs and <span> tags containing single words and punctuation. It lets 
+{-| A selectable text component that renders provided text as a series
+of paragraphs and `span` tags containing single words and punctuation. It lets 
 the user select words using mouse. The model contains the selected phrase in 
 form of a string as well as the previously selected one. That provides an easy 
 way of detection of a selection change within the parent component.
