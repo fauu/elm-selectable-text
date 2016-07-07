@@ -40,6 +40,8 @@ type alias Options =
   { id : String
   , selectedElementClass : String
   , placeholderText : String
+  , allowInterparagraphSelection : Bool
+  , maxSelectionLength : Maybe Int
   }
 
 
@@ -101,12 +103,17 @@ type alias Selection =
   elements
   - **placeholderText** = "" - A string that will be displayed until a text is
   provided by the parent using the `RenderText` message
+  - **allowInterparagraphSelection** = True - Whether to allow the selection to
+  span across multiple paragraphs
+  - **maxSelectionLength** = Nothing - Maximal selection length in words
 -}
 defaultOptions : Options
 defaultOptions =
   { id = "text"
   , selectedElementClass = "selected"
   , placeholderText = ""
+  , allowInterparagraphSelection = True
+  , maxSelectionLength = Nothing
   }
 
 
@@ -120,6 +127,7 @@ record with desired extensions.
         { defaultOptions 
           | id = "my-text"
           , placeholderText = "Loading..."
+          , allowInterparagraphSelection = False
           }
   
 -}
@@ -187,11 +195,7 @@ splitIntoParagraphs : List NumberedElementWithMetadata -> List Paragraph
 splitIntoParagraphs elements =
   let
     isNotParagraphBreak (_, (element, _)) =
-      case element of
-        ParagraphBreak ->
-          False
-        _ ->
-          True
+      not <| isParagraphBreak element
   in
     (::) (List.Extra.takeWhile isNotParagraphBreak elements)
       <| 
@@ -282,7 +286,11 @@ update msg model =
         newSelection =
           if model.selecting 
             then 
-              Just <| recalculateSelection no model.selection
+              recalculateSelection 
+                model.options
+                no 
+                model.text
+                model.selection
             else 
               model.selection
         newText = 
@@ -307,15 +315,93 @@ update msg model =
       { model | text = parseRawText rawText } ! []
 
 
+isWord : Element -> Bool
+isWord element =
+  case element of
+    Word _ ->
+      True
+    _ ->
+      False
+
+
+isParagraphBreak : Element -> Bool
+isParagraphBreak element =
+  case element of
+    ParagraphBreak ->
+      True
+    _ ->
+      False
+
+
+elementsFromRange : ElementNo -> ElementNo -> Text -> Text
+elementsFromRange start end =
+  Dict.filter(\no _ -> no >= start && no <= end)
+
+
+sort2 : comparable -> comparable -> (comparable, comparable)
+sort2 a b =
+  (min a b, max a b)
+
+
 {-| Recalculates the selection given a new element number 
 -}
-recalculateSelection : ElementNo -> Maybe Selection -> Selection
-recalculateSelection newNo maybeSelection =
-  case maybeSelection of
-    Just (initialNo, _, _) ->
-      (initialNo, min initialNo newNo, max initialNo newNo)
-    Nothing ->
-      (newNo, newNo, newNo)
+recalculateSelection 
+  :  Options
+  -> ElementNo
+  -> Text 
+  -> Maybe Selection 
+  -> Maybe Selection
+recalculateSelection 
+  { allowInterparagraphSelection, maxSelectionLength } 
+  newNo 
+  text 
+  maybeSelection 
+    =
+      case maybeSelection of
+        Just (initialNo, _, _) as currentSelection ->
+          let 
+            hasParagraphBreaks =
+              Dict.foldl 
+                (\_ (element, _) acc -> acc || isParagraphBreak element)
+                False
+
+            countWords =
+              Dict.foldl
+                (\_ (element, _) acc -> acc + if (isWord element) then 1 else 0)
+                0
+
+            paragraphBreakBetween startNo endNo =
+              text
+                |> elementsFromRange startNo endNo
+                |> hasParagraphBreaks
+
+            tentativeRange = 
+              sort2 initialNo newNo
+
+            goesOutsideParagraph =
+              uncurry paragraphBreakBetween tentativeRange
+
+            exceedsLength length =
+              text
+                |> uncurry elementsFromRange tentativeRange
+                |> countWords
+                |> (<) length
+
+            exceedsMaxLength =
+              case maxSelectionLength of
+                Just length ->
+                  exceedsLength length
+                Nothing ->
+                  False
+          in
+            if (allowInterparagraphSelection || not goesOutsideParagraph) 
+               && not exceedsMaxLength
+              then
+                Just (initialNo, fst tentativeRange, snd tentativeRange)
+              else
+                currentSelection
+        Nothing ->
+          Just (newNo, newNo, newNo)
 
 
 {-| Given a selection, sets the selection indicator for the appropriate text
@@ -351,8 +437,9 @@ selectedPhrase maybeSelection text =
           " "
   in
     case maybeSelection of
-      Just (_, start, end) ->
-        Dict.filter (\no _ -> no >= start && no <= end) text 
+      Just (_, startNo, endNo) ->
+        text
+          |> elementsFromRange startNo endNo
           |> Dict.toList
           |> List.map (\(_, (element, _)) -> elementText element)
           |> String.concat
@@ -363,7 +450,7 @@ selectedPhrase maybeSelection text =
 
 parseRawText : String -> Text
 parseRawText rawText =
-  find All (regex "([^.,;\"?!\\s]+)|([.,;\"?! \\t]+)|([\\r\\n]+)") rawText
+  find All (regex "([^.,;\"'?!«»\\s\\t]+)|([.,;\"'?!«» \\t]+)|([\\r\\n]+)") rawText
     |> List.map parseRawElement
     |> Dict.fromList
 

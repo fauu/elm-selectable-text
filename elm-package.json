@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "summary": "A selectable text component",
     "repository": "https://github.com/fauu/elm-selectable-text.git",
     "license": "BSD3",
