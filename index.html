@@ -24,6 +24,49 @@
       h1 {
         margin-bottom: 1em; 
       }
+
+      #options {
+        display: inline-block;
+        font-size: 0.8em;
+        padding: 0.9em 1.3em;
+        margin-bottom: 1.5em;
+        background: #FDFDFD;
+        border: 1px solid #EEE;
+        border-radius: 3px;
+      }
+
+      #options > label {
+        height: 2em;
+        line-height: 2em;
+        display: block;
+      }
+
+      #options > label:not(:last-child) {
+        margin-bottom: 0.5em;
+      }
+
+      input {
+        margin: 0 1.3em 0 0;
+        width: 2.5em; 
+      }
+
+      input[type="text"] {
+        padding: 0.15em 0.25em;
+      }
+
+      #phrase-container {
+        margin-left: 1.6em;
+        margin-bottom: 1em; 
+        font-weight: bold;
+      }
+
+      #phrase-container > span {
+        font-style: italic;
+        margin-left: 0.2em; 
+        background: #FFF;
+        padding: 0.1em 0.3em;
+        font-weight: normal;
+      }
       
       #my-text {
         font-family: Georgia, Times, Times New Roman, serif;
@@ -46,13 +89,6 @@
 
       .selected {
         background: #FFFFBB;
-      }
-
-      #phrase {
-        font-style: italic;
-        margin-left: 0.2em; 
-        background: #FFF;
-        padding: 0.1em 0.3em;
       }
     </style>
   </head>

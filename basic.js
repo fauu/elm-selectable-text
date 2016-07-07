@@ -9164,47 +9164,12 @@ var _elm_lang$html$Html_Lazy$lazy3 = _elm_lang$virtual_dom$VirtualDom$lazy3;
 var _elm_lang$html$Html_Lazy$lazy2 = _elm_lang$virtual_dom$VirtualDom$lazy2;
 var _elm_lang$html$Html_Lazy$lazy = _elm_lang$virtual_dom$VirtualDom$lazy;
 
-var _fauu$elm_selectable_text$SelectableText$selectedPhrase = F2(
-	function (maybeSelection, text) {
-		var elementText = function (element) {
-			var _p0 = element;
-			switch (_p0.ctor) {
-				case 'Word':
-					return _p0._0;
-				case 'Punctuation':
-					return _p0._0;
-				default:
-					return ' ';
-			}
-		};
-		var _p1 = maybeSelection;
-		if (_p1.ctor === 'Just') {
-			return _elm_lang$core$Maybe$Just(
-				_elm_lang$core$String$concat(
-					A2(
-						_elm_lang$core$List$map,
-						function (_p2) {
-							var _p3 = _p2;
-							return elementText(_p3._1._0);
-						},
-						_elm_lang$core$Dict$toList(
-							A2(
-								_elm_lang$core$Dict$filter,
-								F2(
-									function (no, _p4) {
-										return (_elm_lang$core$Native_Utils.cmp(no, _p1._0._1) > -1) && (_elm_lang$core$Native_Utils.cmp(no, _p1._0._2) < 1);
-									}),
-								text)))));
-		} else {
-			return _elm_lang$core$Maybe$Nothing;
-		}
-	});
 var _fauu$elm_selectable_text$SelectableText$markSelection = F2(
 	function (maybeSelection, text) {
 		var newIsSelected = function (no) {
-			var _p5 = maybeSelection;
-			if (_p5.ctor === 'Just') {
-				return (_elm_lang$core$Native_Utils.cmp(no, _p5._0._1) > -1) && (_elm_lang$core$Native_Utils.cmp(no, _p5._0._2) < 1);
+			var _p0 = maybeSelection;
+			if (_p0.ctor === 'Just') {
+				return (_elm_lang$core$Native_Utils.cmp(no, _p0._0._1) > -1) && (_elm_lang$core$Native_Utils.cmp(no, _p0._0._2) < 1);
 			} else {
 				return false;
 			}
@@ -9212,40 +9177,141 @@ var _fauu$elm_selectable_text$SelectableText$markSelection = F2(
 		return A2(
 			_elm_lang$core$Dict$map,
 			F2(
-				function (no, _p6) {
-					var _p7 = _p6;
+				function (no, _p1) {
+					var _p2 = _p1;
 					return {
 						ctor: '_Tuple2',
-						_0: _p7._0,
+						_0: _p2._0,
 						_1: newIsSelected(no)
 					};
 				}),
 			text);
 	});
-var _fauu$elm_selectable_text$SelectableText$recalculateSelection = F2(
-	function (newNo, maybeSelection) {
-		var _p8 = maybeSelection;
-		if (_p8.ctor === 'Just') {
-			var _p9 = _p8._0._0;
-			return {
-				ctor: '_Tuple3',
-				_0: _p9,
-				_1: A2(_elm_lang$core$Basics$min, _p9, newNo),
-				_2: A2(_elm_lang$core$Basics$max, _p9, newNo)
-			};
+var _fauu$elm_selectable_text$SelectableText$sort2 = F2(
+	function (a, b) {
+		return {
+			ctor: '_Tuple2',
+			_0: A2(_elm_lang$core$Basics$min, a, b),
+			_1: A2(_elm_lang$core$Basics$max, a, b)
+		};
+	});
+var _fauu$elm_selectable_text$SelectableText$elementsFromRange = F2(
+	function (start, end) {
+		return _elm_lang$core$Dict$filter(
+			F2(
+				function (no, _p3) {
+					return (_elm_lang$core$Native_Utils.cmp(no, start) > -1) && (_elm_lang$core$Native_Utils.cmp(no, end) < 1);
+				}));
+	});
+var _fauu$elm_selectable_text$SelectableText$selectedPhrase = F2(
+	function (maybeSelection, text) {
+		var elementText = function (element) {
+			var _p4 = element;
+			switch (_p4.ctor) {
+				case 'Word':
+					return _p4._0;
+				case 'Punctuation':
+					return _p4._0;
+				default:
+					return ' ';
+			}
+		};
+		var _p5 = maybeSelection;
+		if (_p5.ctor === 'Just') {
+			return _elm_lang$core$Maybe$Just(
+				_elm_lang$core$String$concat(
+					A2(
+						_elm_lang$core$List$map,
+						function (_p6) {
+							var _p7 = _p6;
+							return elementText(_p7._1._0);
+						},
+						_elm_lang$core$Dict$toList(
+							A3(_fauu$elm_selectable_text$SelectableText$elementsFromRange, _p5._0._1, _p5._0._2, text)))));
 		} else {
-			return {ctor: '_Tuple3', _0: newNo, _1: newNo, _2: newNo};
+			return _elm_lang$core$Maybe$Nothing;
+		}
+	});
+var _fauu$elm_selectable_text$SelectableText$isParagraphBreak = function (element) {
+	var _p8 = element;
+	if (_p8.ctor === 'ParagraphBreak') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var _fauu$elm_selectable_text$SelectableText$isWord = function (element) {
+	var _p9 = element;
+	if (_p9.ctor === 'Word') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var _fauu$elm_selectable_text$SelectableText$recalculateSelection = F4(
+	function (_p10, newNo, text, maybeSelection) {
+		var _p11 = _p10;
+		var _p12 = maybeSelection;
+		if (_p12.ctor === 'Just') {
+			var _p20 = _p12._0._0;
+			var tentativeRange = A2(_fauu$elm_selectable_text$SelectableText$sort2, _p20, newNo);
+			var countWords = A2(
+				_elm_lang$core$Dict$foldl,
+				F3(
+					function (_p14, _p13, acc) {
+						var _p15 = _p13;
+						return acc + (_fauu$elm_selectable_text$SelectableText$isWord(_p15._0) ? 1 : 0);
+					}),
+				0);
+			var exceedsLength = function (length) {
+				return A2(
+					F2(
+						function (x, y) {
+							return _elm_lang$core$Native_Utils.cmp(x, y) < 0;
+						}),
+					length,
+					countWords(
+						A3(_elm_lang$core$Basics$uncurry, _fauu$elm_selectable_text$SelectableText$elementsFromRange, tentativeRange, text)));
+			};
+			var exceedsMaxLength = function () {
+				var _p16 = _p11.maxSelectionLength;
+				if (_p16.ctor === 'Just') {
+					return exceedsLength(_p16._0);
+				} else {
+					return false;
+				}
+			}();
+			var hasParagraphBreaks = A2(
+				_elm_lang$core$Dict$foldl,
+				F3(
+					function (_p18, _p17, acc) {
+						var _p19 = _p17;
+						return acc || _fauu$elm_selectable_text$SelectableText$isParagraphBreak(_p19._0);
+					}),
+				false);
+			var paragraphBreakBetween = F2(
+				function (startNo, endNo) {
+					return hasParagraphBreaks(
+						A3(_fauu$elm_selectable_text$SelectableText$elementsFromRange, startNo, endNo, text));
+				});
+			var goesOutsideParagraph = A2(_elm_lang$core$Basics$uncurry, paragraphBreakBetween, tentativeRange);
+			return ((_p11.allowInterparagraphSelection || _elm_lang$core$Basics$not(goesOutsideParagraph)) && _elm_lang$core$Basics$not(exceedsMaxLength)) ? _elm_lang$core$Maybe$Just(
+				{
+					ctor: '_Tuple3',
+					_0: _p20,
+					_1: _elm_lang$core$Basics$fst(tentativeRange),
+					_2: _elm_lang$core$Basics$snd(tentativeRange)
+				}) : _p12;
+		} else {
+			return _elm_lang$core$Maybe$Just(
+				{ctor: '_Tuple3', _0: newNo, _1: newNo, _2: newNo});
 		}
 	});
 var _fauu$elm_selectable_text$SelectableText$splitIntoParagraphs = function (elements) {
-	var isNotParagraphBreak = function (_p10) {
-		var _p11 = _p10;
-		var _p12 = _p11._1._0;
-		if (_p12.ctor === 'ParagraphBreak') {
-			return false;
-		} else {
-			return true;
-		}
+	var isNotParagraphBreak = function (_p21) {
+		var _p22 = _p21;
+		return _elm_lang$core$Basics$not(
+			_fauu$elm_selectable_text$SelectableText$isParagraphBreak(_p22._1._0));
 	};
 	return A2(
 		F2(
@@ -9256,19 +9322,19 @@ var _fauu$elm_selectable_text$SelectableText$splitIntoParagraphs = function (ele
 		function () {
 			var maybeTail = _elm_lang$core$List$tail(
 				A2(_elm_community$list_extra$List_Extra$dropWhile, isNotParagraphBreak, elements));
-			var _p13 = maybeTail;
-			if (_p13.ctor === 'Just') {
-				return _fauu$elm_selectable_text$SelectableText$splitIntoParagraphs(_p13._0);
+			var _p23 = maybeTail;
+			if (_p23.ctor === 'Just') {
+				return _fauu$elm_selectable_text$SelectableText$splitIntoParagraphs(_p23._0);
 			} else {
 				return _elm_lang$core$Native_List.fromArray(
 					[]);
 			}
 		}());
 };
-var _fauu$elm_selectable_text$SelectableText$defaultOptions = {id: 'text', selectedElementClass: 'selected', placeholderText: ''};
-var _fauu$elm_selectable_text$SelectableText$Options = F3(
-	function (a, b, c) {
-		return {id: a, selectedElementClass: b, placeholderText: c};
+var _fauu$elm_selectable_text$SelectableText$defaultOptions = {id: 'text', selectedElementClass: 'selected', placeholderText: '', allowInterparagraphSelection: true, maxSelectionLength: _elm_lang$core$Maybe$Nothing};
+var _fauu$elm_selectable_text$SelectableText$Options = F5(
+	function (a, b, c, d, e) {
+		return {id: a, selectedElementClass: b, placeholderText: c, allowInterparagraphSelection: d, maxSelectionLength: e};
 	});
 var _fauu$elm_selectable_text$SelectableText$Model = F6(
 	function (a, b, c, d, e, f) {
@@ -9300,25 +9366,25 @@ var _fauu$elm_selectable_text$SelectableText$initialModel = function (options) {
 };
 var _fauu$elm_selectable_text$SelectableText$parseRawElement = function (match) {
 	var element = function () {
-		var _p14 = match.submatches;
-		_v9_3:
+		var _p24 = match.submatches;
+		_v14_3:
 		do {
-			if ((((_p14.ctor === '::') && (_p14._1.ctor === '::')) && (_p14._1._1.ctor === '::')) && (_p14._1._1._1.ctor === '[]')) {
-				if (_p14._0.ctor === 'Just') {
-					return _fauu$elm_selectable_text$SelectableText$Word(_p14._0._0);
+			if ((((_p24.ctor === '::') && (_p24._1.ctor === '::')) && (_p24._1._1.ctor === '::')) && (_p24._1._1._1.ctor === '[]')) {
+				if (_p24._0.ctor === 'Just') {
+					return _fauu$elm_selectable_text$SelectableText$Word(_p24._0._0);
 				} else {
-					if (_p14._1._0.ctor === 'Just') {
-						return _fauu$elm_selectable_text$SelectableText$Punctuation(_p14._1._0._0);
+					if (_p24._1._0.ctor === 'Just') {
+						return _fauu$elm_selectable_text$SelectableText$Punctuation(_p24._1._0._0);
 					} else {
-						if (_p14._1._1._0.ctor === 'Just') {
+						if (_p24._1._1._0.ctor === 'Just') {
 							return _fauu$elm_selectable_text$SelectableText$ParagraphBreak;
 						} else {
-							break _v9_3;
+							break _v14_3;
 						}
 					}
 				}
 			} else {
-				break _v9_3;
+				break _v14_3;
 			}
 		} while(false);
 		return _fauu$elm_selectable_text$SelectableText$Punctuation(' ');
@@ -9337,13 +9403,13 @@ var _fauu$elm_selectable_text$SelectableText$parseRawText = function (rawText) {
 			A3(
 				_elm_lang$core$Regex$find,
 				_elm_lang$core$Regex$All,
-				_elm_lang$core$Regex$regex('([^.,;\"?!\\s]+)|([.,;\"?! \\t]+)|([\\r\\n]+)'),
+				_elm_lang$core$Regex$regex('([^.,;\"\'?!«»\\s\\t]+)|([.,;\"\'?!«» \\t]+)|([\\r\\n]+)'),
 				rawText)));
 };
 var _fauu$elm_selectable_text$SelectableText$update = F2(
 	function (msg, model) {
-		var _p15 = msg;
-		switch (_p15.ctor) {
+		var _p25 = msg;
+		switch (_p25.ctor) {
 			case 'NoOp':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -9352,11 +9418,11 @@ var _fauu$elm_selectable_text$SelectableText$update = F2(
 						[]));
 			case 'StartSelecting':
 				var newSelection = function () {
-					var _p16 = model.mouseOverWordNo;
-					if (_p16.ctor === 'Just') {
-						var _p17 = _p16._0;
+					var _p26 = model.mouseOverWordNo;
+					if (_p26.ctor === 'Just') {
+						var _p27 = _p26._0;
 						return _elm_lang$core$Maybe$Just(
-							{ctor: '_Tuple3', _0: _p17, _1: _p17, _2: _p17});
+							{ctor: '_Tuple3', _0: _p27, _1: _p27, _2: _p27});
 					} else {
 						return _elm_lang$core$Maybe$Nothing;
 					}
@@ -9382,14 +9448,13 @@ var _fauu$elm_selectable_text$SelectableText$update = F2(
 					_elm_lang$core$Native_List.fromArray(
 						[]));
 			case 'MouseEnteredWord':
-				var _p18 = _p15._0;
-				var newSelection = model.selecting ? _elm_lang$core$Maybe$Just(
-					A2(_fauu$elm_selectable_text$SelectableText$recalculateSelection, _p18, model.selection)) : model.selection;
+				var _p28 = _p25._0;
+				var newSelection = model.selecting ? A4(_fauu$elm_selectable_text$SelectableText$recalculateSelection, model.options, _p28, model.text, model.selection) : model.selection;
 				var newText = model.selecting ? A2(_fauu$elm_selectable_text$SelectableText$markSelection, newSelection, model.text) : model.text;
 				var newModel = _elm_lang$core$Native_Utils.update(
 					model,
 					{
-						mouseOverWordNo: _elm_lang$core$Maybe$Just(_p18),
+						mouseOverWordNo: _elm_lang$core$Maybe$Just(_p28),
 						selection: newSelection,
 						text: newText
 					});
@@ -9412,7 +9477,7 @@ var _fauu$elm_selectable_text$SelectableText$update = F2(
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{
-							text: _fauu$elm_selectable_text$SelectableText$parseRawText(_p15._0)
+							text: _fauu$elm_selectable_text$SelectableText$parseRawText(_p25._0)
 						}),
 					_elm_lang$core$Native_List.fromArray(
 						[]));
@@ -9428,18 +9493,18 @@ var _fauu$elm_selectable_text$SelectableText$MouseEnteredWord = function (a) {
 	return {ctor: 'MouseEnteredWord', _0: a};
 };
 var _fauu$elm_selectable_text$SelectableText$viewElement = F2(
-	function (_p20, _p19) {
-		var _p21 = _p20;
-		var _p27 = _p21.selectedElementClass;
-		var _p22 = _p19;
-		var _p26 = _p22._0;
-		var _p25 = _p22._1._1;
-		var _p23 = _p22._1._0;
-		switch (_p23.ctor) {
+	function (_p30, _p29) {
+		var _p31 = _p30;
+		var _p37 = _p31.selectedElementClass;
+		var _p32 = _p29;
+		var _p36 = _p32._0;
+		var _p35 = _p32._1._1;
+		var _p33 = _p32._1._0;
+		switch (_p33.ctor) {
 			case 'Word':
-				var classNode = _p25 ? _elm_lang$core$Native_List.fromArray(
+				var classNode = _p35 ? _elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Attributes$class(_p27)
+						_elm_lang$html$Html_Attributes$class(_p37)
 					]) : _elm_lang$core$Native_List.fromArray(
 					[]);
 				var attributes = A2(
@@ -9447,9 +9512,9 @@ var _fauu$elm_selectable_text$SelectableText$viewElement = F2(
 					_elm_lang$core$Native_List.fromArray(
 						[
 							_elm_lang$html$Html_Events$onMouseEnter(
-							_fauu$elm_selectable_text$SelectableText$MouseEnteredWord(_p26)),
+							_fauu$elm_selectable_text$SelectableText$MouseEnteredWord(_p36)),
 							_elm_lang$html$Html_Events$onMouseLeave(
-							_fauu$elm_selectable_text$SelectableText$MouseLeftWord(_p26))
+							_fauu$elm_selectable_text$SelectableText$MouseLeftWord(_p36))
 						]),
 					classNode);
 				return A2(
@@ -9457,20 +9522,20 @@ var _fauu$elm_selectable_text$SelectableText$viewElement = F2(
 					attributes,
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_elm_lang$html$Html$text(_p23._0)
+							_elm_lang$html$Html$text(_p33._0)
 						]));
 			case 'Punctuation':
-				var _p24 = _p23._0;
-				return _p25 ? A2(
+				var _p34 = _p33._0;
+				return _p35 ? A2(
 					_elm_lang$html$Html$span,
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_elm_lang$html$Html_Attributes$class(_p27)
+							_elm_lang$html$Html_Attributes$class(_p37)
 						]),
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_elm_lang$html$Html$text(_p24)
-						])) : _elm_lang$html$Html$text(_p24);
+							_elm_lang$html$Html$text(_p34)
+						])) : _elm_lang$html$Html$text(_p34);
 			default:
 				return _elm_lang$html$Html$text('');
 		}
@@ -9488,19 +9553,19 @@ var _fauu$elm_selectable_text$SelectableText$viewParagraph = F2(
 	});
 var _fauu$elm_selectable_text$SelectableText$StopSelecting = {ctor: 'StopSelecting'};
 var _fauu$elm_selectable_text$SelectableText$StartSelecting = {ctor: 'StartSelecting'};
-var _fauu$elm_selectable_text$SelectableText$view = function (_p28) {
-	var _p29 = _p28;
-	var _p30 = _p29.options;
+var _fauu$elm_selectable_text$SelectableText$view = function (_p38) {
+	var _p39 = _p38;
+	var _p40 = _p39.options;
 	var paragraphs = A2(
 		_elm_lang$core$List$map,
-		_fauu$elm_selectable_text$SelectableText$viewParagraph(_p30),
+		_fauu$elm_selectable_text$SelectableText$viewParagraph(_p40),
 		_fauu$elm_selectable_text$SelectableText$splitIntoParagraphs(
-			_elm_lang$core$Dict$toList(_p29.text)));
+			_elm_lang$core$Dict$toList(_p39.text)));
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_elm_lang$html$Html_Attributes$id(_p30.id),
+				_elm_lang$html$Html_Attributes$id(_p40.id),
 				_elm_lang$html$Html_Events$onMouseDown(_fauu$elm_selectable_text$SelectableText$StartSelecting),
 				_elm_lang$html$Html_Events$onMouseUp(_fauu$elm_selectable_text$SelectableText$StopSelecting)
 			]),
@@ -9508,7 +9573,7 @@ var _fauu$elm_selectable_text$SelectableText$view = function (_p28) {
 };
 var _fauu$elm_selectable_text$SelectableText$NoOp = {ctor: 'NoOp'};
 
-var _fauu$elm_selectable_text$Basic$sampleText = '\nAujourd’hui, maman est morte. Ou peut-être hier, je ne sais pas. J’ai reçu un télégramme de l’asile : « Mère décédée. Enterrement demain. Sentiments distingués. » Cela ne veut rien dire. C’était peut-être hier.\nL’asile de vieillards est à Marengo, à quatre-vingts kilomètres d’Alger. Je prendrai l’autobus à deux heures et j’arriverai dans l’après-midi. Ainsi, je pourrai veiller et je rentrerai demain soir. J’ai demandé deux jours de congé à mon patron et il ne pouvait pas me les refuser avec une excuse pareille. Mais il n’avait pas l’air content. Je lui ai même dit : « Ce n’est pas de ma faute. » Il n’a pas répondu. J’ai pensé alors que je n’aurais pas dû lui dire cela. En somme, je n’avais pas à m’excuser. C’était plutôt à lui de me présenter ses condoléances. Mais il le fera sans doute après-demain, quand il me verra en deuil. Pour le moment, c’est un peu comme si maman n’était pas morte. Après l’enterrement, au contraire, ce sera une affaire classée et tout aura revêtu une allure plus officielle.\nJ’ai pris l’autobus à deux heures. Il faisait très chaud. J’ai mangé au restaurant, chez Céleste, comme d’habitude. Ils avaient tous beaucoup de peine pour moi et Céleste m’a dit : « On n’a qu’une mère. » Quand je suis parti, ils m’ont accompagné à la porte. J’étais un peu étourdi parce qu’il a fallu que je monte chez Emmanuel pour lui emprunter une cravate noire et un brassard. Il a perdu son oncle, il y a quelques mois.\nJ’ai couru pour ne pas manquer le départ. Cette hâte, cette course, c’est à cause de tout cela sans doute, ajouté aux cahots, à l’odeur d’essence, à la réverbération de la route et du ciel, que je me suis assoupi. J’ai dormi pendant presque tout le trajet. Et quand je me suis réveillé, j’étais tassé contre un militaire qui m’a souri et qui m’a demandé si je venais de loin. J’ai dit « oui » pour n’avoir plus à parler.\n';
+var _fauu$elm_selectable_text$Basic$sampleText = '\nAujourd’hui, maman est morte. Ou peut-être hier, je ne sais pas. J’ai reçu un télégramme de l’asile: «Mère décédée. Enterrement demain. Sentiments distingués.» Cela ne veut rien dire. C’était peut-être hier.\nL’asile de vieillards est à Marengo, à quatre-vingts kilomètres d’Alger. Je prendrai l’autobus à deux heures et j’arriverai dans l’après-midi. Ainsi, je pourrai veiller et je rentrerai demain soir. J’ai demandé deux jours de congé à mon patron et il ne pouvait pas me les refuser avec une excuse pareille. Mais il n’avait pas l’air content. Je lui ai même dit : «Ce n’est pas de ma faute.» Il n’a pas répondu. J’ai pensé alors que je n’aurais pas dû lui dire cela. En somme, je n’avais pas à m’excuser. C’était plutôt à lui de me présenter ses condoléances. Mais il le fera sans doute après-demain, quand il me verra en deuil. Pour le moment, c’est un peu comme si maman n’était pas morte. Après l’enterrement, au contraire, ce sera une affaire classée et tout aura revêtu une allure plus officielle.\nJ’ai pris l’autobus à deux heures. Il faisait très chaud. J’ai mangé au restaurant, chez Céleste, comme d’habitude. Ils avaient tous beaucoup de peine pour moi et Céleste m’a dit : «On n’a qu’une mère.» Quand je suis parti, ils m’ont accompagné à la porte. J’étais un peu étourdi parce qu’il a fallu que je monte chez Emmanuel pour lui emprunter une cravate noire et un brassard. Il a perdu son oncle, il y a quelques mois.\nJ’ai couru pour ne pas manquer le départ. Cette hâte, cette course, c’est à cause de tout cela sans doute, ajouté aux cahots, à l’odeur d’essence, à la réverbération de la route et du ciel, que je me suis assoupi. J’ai dormi pendant presque tout le trajet. Et quand je me suis réveillé, j’étais tassé contre un militaire qui m’a souri et qui m’a demandé si je venais de loin. J’ai dit «oui» pour n’avoir plus à parler.\n';
 var _fauu$elm_selectable_text$Basic$message = function (msg) {
 	return A3(
 		_elm_lang$core$Task$perform,
@@ -9518,18 +9583,18 @@ var _fauu$elm_selectable_text$Basic$message = function (msg) {
 };
 var _fauu$elm_selectable_text$Basic$viewSelectedPhrase = function (maybeSelectedPhrase) {
 	return A2(
-		_elm_lang$html$Html$p,
+		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
-			[]),
+			[
+				_elm_lang$html$Html_Attributes$id('phrase-container')
+			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				_elm_lang$html$Html$text('Selected phrase: '),
 				A2(
 				_elm_lang$html$Html$span,
 				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$id('phrase')
-					]),
+					[]),
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text(
@@ -9539,6 +9604,69 @@ var _fauu$elm_selectable_text$Basic$viewSelectedPhrase = function (maybeSelected
 };
 var _fauu$elm_selectable_text$Basic$Model = function (a) {
 	return {selectableTextModel: a};
+};
+var _fauu$elm_selectable_text$Basic$MaxSelectionLength = function (a) {
+	return {ctor: 'MaxSelectionLength', _0: a};
+};
+var _fauu$elm_selectable_text$Basic$AllowInterparagraphSelection = function (a) {
+	return {ctor: 'AllowInterparagraphSelection', _0: a};
+};
+var _fauu$elm_selectable_text$Basic$viewOptions = function (_p0) {
+	var _p1 = _p0;
+	var _p3 = _p1.options;
+	var maxSelectionLengthString = function () {
+		var _p2 = _p3.maxSelectionLength;
+		if (_p2.ctor === 'Just') {
+			return _elm_lang$core$Basics$toString(_p2._0);
+		} else {
+			return '';
+		}
+	}();
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$id('options')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$label,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$input,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$type$('checkbox'),
+								_elm_lang$html$Html_Attributes$checked(_p3.allowInterparagraphSelection),
+								_elm_lang$html$Html_Events$onCheck(_fauu$elm_selectable_text$Basic$AllowInterparagraphSelection)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[])),
+						_elm_lang$html$Html$text('Allow selection to span across multiple paragraphs')
+					])),
+				A2(
+				_elm_lang$html$Html$label,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$input,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$type$('text'),
+								_elm_lang$html$Html_Attributes$placeholder(maxSelectionLengthString),
+								_elm_lang$html$Html_Events$onInput(_fauu$elm_selectable_text$Basic$MaxSelectionLength)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[])),
+						_elm_lang$html$Html$text('Maximal selection length (number of words)')
+					]))
+			]));
 };
 var _fauu$elm_selectable_text$Basic$RawTextReady = function (a) {
 	return {ctor: 'RawTextReady', _0: a};
@@ -9556,7 +9684,7 @@ var _fauu$elm_selectable_text$Basic$init = function () {
 		_fauu$elm_selectable_text$SelectableText$initialModel(
 			_elm_lang$core$Native_Utils.update(
 				_fauu$elm_selectable_text$SelectableText$defaultOptions,
-				{id: 'my-text', placeholderText: 'Loading...'})));
+				{id: 'my-text', placeholderText: 'Loading...', allowInterparagraphSelection: true, maxSelectionLength: _elm_lang$core$Maybe$Nothing})));
 	return A2(
 		_elm_lang$core$Platform_Cmd_ops['!'],
 		initialModel,
@@ -9566,38 +9694,44 @@ var _fauu$elm_selectable_text$Basic$init = function () {
 var _fauu$elm_selectable_text$Basic$SelectableTextMsg = function (a) {
 	return {ctor: 'SelectableTextMsg', _0: a};
 };
-var _fauu$elm_selectable_text$Basic$view = function (model) {
+var _fauu$elm_selectable_text$Basic$view = function (_p4) {
+	var _p5 = _p4;
+	var _p6 = _p5.selectableTextModel;
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
 			[]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				A2(_elm_lang$html$Html_Lazy$lazy, _fauu$elm_selectable_text$Basic$viewSelectedPhrase, model.selectableTextModel.selectedPhrase),
+				A2(_elm_lang$html$Html_Lazy$lazy, _fauu$elm_selectable_text$Basic$viewOptions, _p6),
+				A2(_elm_lang$html$Html_Lazy$lazy, _fauu$elm_selectable_text$Basic$viewSelectedPhrase, _p6.selectedPhrase),
 				A2(
 				_elm_lang$html$Html_App$map,
 				_fauu$elm_selectable_text$Basic$SelectableTextMsg,
-				_fauu$elm_selectable_text$SelectableText$view(model.selectableTextModel))
+				_fauu$elm_selectable_text$SelectableText$view(_p6))
 			]));
 };
 var _fauu$elm_selectable_text$Basic$update = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
+	function (msg, _p7) {
+		var _p8 = _p7;
+		var _p12 = _p8.selectableTextModel;
+		var _p11 = _p8;
+		var _p9 = msg;
+		switch (_p9.ctor) {
 			case 'NoOp':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
+					_p11,
 					_elm_lang$core$Native_List.fromArray(
 						[]));
 			case 'SelectableTextMsg':
-				var _p1 = A2(_fauu$elm_selectable_text$SelectableText$update, _p0._0, model.selectableTextModel);
-				var newSelectableTextModel = _p1._0;
-				var selectableTextCmd = _p1._1;
+				var _p10 = A2(_fauu$elm_selectable_text$SelectableText$update, _p9._0, _p12);
+				var newSelectableTextModel = _p10._0;
+				var selectableTextCmd = _p10._1;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
-						model,
+						_p11,
 						{selectableTextModel: newSelectableTextModel}),
 					_elm_lang$core$Native_List.fromArray(
 						[
@@ -9606,19 +9740,55 @@ var _fauu$elm_selectable_text$Basic$update = F2(
 			case 'RawTextUnavailable':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
+					_p11,
 					_elm_lang$core$Native_List.fromArray(
 						[]));
-			default:
+			case 'RawTextReady':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
+					_p11,
 					_elm_lang$core$Native_List.fromArray(
 						[
 							_fauu$elm_selectable_text$Basic$message(
 							_fauu$elm_selectable_text$Basic$SelectableTextMsg(
-								_fauu$elm_selectable_text$SelectableText$RenderText(_p0._0)))
+								_fauu$elm_selectable_text$SelectableText$RenderText(_p9._0)))
 						]));
+			case 'AllowInterparagraphSelection':
+				var options = _p12.options;
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						_p11,
+						{
+							selectableTextModel: _elm_lang$core$Native_Utils.update(
+								_p12,
+								{
+									options: _elm_lang$core$Native_Utils.update(
+										options,
+										{allowInterparagraphSelection: _p9._0})
+								})
+						}),
+					_elm_lang$core$Native_List.fromArray(
+						[]));
+			default:
+				var options = _p12.options;
+				var newMaxSelectionLength = _elm_lang$core$Result$toMaybe(
+					_elm_lang$core$String$toInt(_p9._0));
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						_p11,
+						{
+							selectableTextModel: _elm_lang$core$Native_Utils.update(
+								_p12,
+								{
+									options: _elm_lang$core$Native_Utils.update(
+										options,
+										{maxSelectionLength: newMaxSelectionLength})
+								})
+						}),
+					_elm_lang$core$Native_List.fromArray(
+						[]));
 		}
 	});
 var _fauu$elm_selectable_text$Basic$main = {
@@ -9627,7 +9797,7 @@ var _fauu$elm_selectable_text$Basic$main = {
 			init: _fauu$elm_selectable_text$Basic$init,
 			view: _fauu$elm_selectable_text$Basic$view,
 			update: _fauu$elm_selectable_text$Basic$update,
-			subscriptions: function (_p2) {
+			subscriptions: function (_p13) {
 				return _elm_lang$core$Platform_Sub$none;
 			}
 		})
