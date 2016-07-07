@@ -50,7 +50,7 @@ type alias Model =
   }
 
 
-type TextElement
+type Element
   = Word String
   | Punctuation String
   | ParagraphBreak
@@ -60,24 +60,24 @@ type alias SelectionIndicator =
   Bool
 
 
-type alias TextElementWithSelectionIndicator =
-  (TextElement, SelectionIndicator)
+type alias ElementWithMetadata =
+  (Element, SelectionIndicator)
 
 
 type alias ElementNo =
   Int
 
 
-type alias TextElementWithMetadata =
-  (ElementNo, TextElementWithSelectionIndicator)
+type alias NumberedElementWithMetadata =
+  (ElementNo, ElementWithMetadata)
 
 
 type alias Paragraph =
-  List TextElementWithMetadata
+  List NumberedElementWithMetadata
 
 
 type alias Text =
-  Dict ElementNo TextElementWithSelectionIndicator
+  Dict ElementNo ElementWithMetadata
 
 
 {-| A type representing a selection as ids of three text elements:
@@ -157,22 +157,22 @@ view model =
       paragraphs
 
 
-splitIntoParagraphs : List TextElementWithMetadata -> List Paragraph
-splitIntoParagraphs textElements =
+splitIntoParagraphs : List NumberedElementWithMetadata -> List Paragraph
+splitIntoParagraphs elements =
   let
-    isNotParagraphBreak (_, (textElement, _)) =
-      case textElement of
+    isNotParagraphBreak (_, (element, _)) =
+      case element of
         ParagraphBreak ->
           False
         _ ->
           True
   in
-    (::) (List.Extra.takeWhile isNotParagraphBreak textElements)
+    (::) (List.Extra.takeWhile isNotParagraphBreak elements)
       <| 
         let
           maybeTail =
             List.tail 
-              <| List.Extra.dropWhile isNotParagraphBreak textElements
+              <| List.Extra.dropWhile isNotParagraphBreak elements
         in
           case maybeTail of
             Just tail ->
@@ -183,12 +183,12 @@ splitIntoParagraphs textElements =
 
 viewParagraph : Paragraph -> Html Msg
 viewParagraph paragraph =
-  p [] (List.map viewTextElement paragraph)
+  p [] (List.map viewElement paragraph)
 
 
-viewTextElement : TextElementWithMetadata -> Html Msg
-viewTextElement (no, (textElement, isSelected)) =
-  case textElement of
+viewElement : NumberedElementWithMetadata -> Html Msg
+viewElement (no, (element, isSelected)) =
+  case element of
     Word w ->
       let
         classNode =
@@ -301,7 +301,7 @@ markSelection maybeSelection text =
           False
   in
     Dict.map 
-      (\no (textElement, isSelected) -> (textElement, newIsSelected no)) 
+      (\no (element, isSelected) -> (element, newIsSelected no)) 
       text
 
 
@@ -310,8 +310,8 @@ markSelection maybeSelection text =
 selectedPhrase : Maybe Selection -> Text -> Maybe String
 selectedPhrase maybeSelection text =
   let
-    textElementText textElement =
-      case textElement of
+    elementText element =
+      case element of
         Word w ->
           w
         Punctuation p ->
@@ -323,7 +323,7 @@ selectedPhrase maybeSelection text =
       Just (_, start, end) ->
         Dict.filter (\no _ -> no >= start && no <= end) text 
           |> Dict.toList
-          |> List.map (\(_, (textElement, _)) -> textElementText textElement)
+          |> List.map (\(_, (element, _)) -> elementText element)
           |> String.concat
           |> Just
       Nothing ->
@@ -333,14 +333,14 @@ selectedPhrase maybeSelection text =
 parseRawText : String -> Text
 parseRawText rawText =
   find All (regex "([^.,;\"?!\\s]+)|([.,;\"?! \\t]+)|([\\r\\n]+)") rawText
-    |> List.map parseRawTextElement
+    |> List.map parseRawElement
     |> Dict.fromList
 
 
-parseRawTextElement : Regex.Match -> TextElementWithMetadata
-parseRawTextElement match =
+parseRawElement : Regex.Match -> NumberedElementWithMetadata
+parseRawElement match =
   let
-    textElement =
+    element =
       case match.submatches of
         [Just word, _, _] ->
           Word word 
@@ -351,4 +351,4 @@ parseRawTextElement match =
         _ ->
           Punctuation " "
   in
-    (match.number, (textElement, False))
+    (match.number, (element, False))
