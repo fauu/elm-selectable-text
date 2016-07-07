@@ -96,9 +96,10 @@ type alias Selection =
 
 
 {-| Default component options:
-  - **id** - The HTML id attribute for the root tag
-  - **selectedElementClass** - The CSS class of the selected elements
-  - **placeholderText** - A string that will be displayed until a text is
+  - **id** = "text" - The HTML id attribute for the root tag
+  - **selectedElementClass** = "selected" - The CSS class of the selected
+  elements
+  - **placeholderText** = "" - A string that will be displayed until a text is
   provided by the parent using the `RenderText` message
 -}
 defaultOptions : Options
@@ -109,7 +110,7 @@ defaultOptions =
   }
 
 
-{-| Initialize the component. Expects user to provide a `defaultOptions`
+{-| Initializes the component. Expects user to provide a `defaultOptions`
 record with desired extensions.
 
     import SelectableText exposing (defaultOptions)
