@@ -1,16 +1,15 @@
 module SelectableText exposing 
-  (Model
-  , Msg (ParseText)
+  ( Model
+  , Msg (RenderText)
   , initialModel
   , view
   , update
   )
 
-{-| A selectable text component that renders provided text as a series
-of paragraphs and `span` tags containing single words and punctuation. It lets 
-the user select words using mouse. The model contains the selected phrase in 
-form of a string as well as the previously selected one. That provides an easy 
-way of detection of a selection change within the parent component.
+{-| A selectable text component that renders provided text and lets the 
+user select words using mouse. All the elements of the selection are assigned a 
+`selected` css class. The model contains the selected phrase in form of a string
+to be used by the parent component.
 
 # Model
 @docs Model, initialModel
@@ -26,7 +25,7 @@ way of detection of a selection change within the parent component.
 -}
 
 import Html exposing (Html, div, p, span, text)
-import Html.Attributes exposing (id, class)
+import Html.Attributes exposing (attribute, class, id)
 import Html.Events exposing (onMouseDown, onMouseUp, onMouseEnter, onMouseLeave)
 import String
 import List
@@ -44,11 +43,10 @@ import Dict exposing (Dict)
 type alias Model =
   { id : String
   , text : Text
-  , mouseOverWordNo : Maybe Int
+  , mouseOverWordNo : Maybe ElementNo
   , selecting : Bool
   , selection : Maybe Selection
   , selectedPhrase : Maybe String
-  , previousSelectedPhrase : Maybe String
   }
 
 
@@ -92,7 +90,7 @@ type alias Selection =
 
 
 {-| Initialize the component. Expects user to provide id and a placeholder text
-that will be displayed until a text is provided by the parent using `ParseText`
+that will be displayed until a text is provided by the parent using `RenderText`
 message.
 
 
@@ -107,23 +105,27 @@ initialModel id' placeholderText =
   , selecting = False
   , selection = Nothing
   , selectedPhrase = Nothing
-  , previousSelectedPhrase = Nothing
   }
 
 
 -- MESSAGES
 
 
-{-| A type representing component messages. The `ParseText` message should be
+{-| A type representing component messages. The `RenderText` message should be
 used to pass a string to be parsed and rendered by the component from the parent
 component.
 
 
+    message : Msg -> Cmd Msg
+    message msg =
+      Task.perform identity identity (Task.succeed msg)
+
+    -- inside parent's update function
     RawTextFetched rawText ->
       model 
         ! [ message
               <| SelectableTextMsg 
-              <| SelectableText.ParseText rawText
+              <| SelectableText.RenderText rawText
           ] 
 
 -}
@@ -133,7 +135,7 @@ type Msg
   | StopSelecting
   | MouseEnteredWord ElementNo
   | MouseLeftWord ElementNo
-  | ParseText String
+  | RenderText String
 
 
 -- VIEW
@@ -189,19 +191,17 @@ viewTextElement (no, (textElement, isSelected)) =
   case textElement of
     Word w ->
       let
-        class' = 
-          "w-" 
-            ++ (toString no) 
-            ++ if isSelected 
-                 then " selected" 
-                 else ""
-      in
-        span 
-          [ class class'
-          , onMouseEnter (MouseEnteredWord no)
+        classNode =
+          if isSelected
+            then [ class "selected" ]
+            else [ ]
+        attributes =
+          [ onMouseEnter (MouseEnteredWord no)
           , onMouseLeave (MouseLeftWord no)
           ] 
-          [ text w ]
+          ++ classNode
+      in
+        span attributes [ text w ]
     Punctuation p ->
       if isSelected then 
         span [ class "selected" ] [ text p ]
@@ -242,16 +242,11 @@ update msg model =
         newModel ! []
 
     StopSelecting ->
-      let
-        newSelectedPhrase =
-          selectedPhrase model.selection model.text
-      in
-        { model 
-          | selecting = False
-          , selectedPhrase = newSelectedPhrase
-          , previousSelectedPhrase = model.selectedPhrase
-          } 
-          ! [ ]
+      { model 
+        | selecting = False
+        , selectedPhrase = selectedPhrase model.selection model.text
+        } 
+        ! [ ]
 
     MouseEnteredWord no ->
       let
@@ -277,7 +272,7 @@ update msg model =
     MouseLeftWord no ->
       { model | mouseOverWordNo = Nothing } ! []
 
-    ParseText rawText ->
+    RenderText rawText ->
       { model | text = parseRawText rawText } ! []
 
 
@@ -321,8 +316,8 @@ selectedPhrase maybeSelection text =
           w
         Punctuation p ->
           p
-        _ ->
-          ""
+        ParagraphBreak ->
+          " "
   in
     case maybeSelection of
       Just (_, start, end) ->

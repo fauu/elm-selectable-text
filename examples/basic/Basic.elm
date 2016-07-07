@@ -80,7 +80,7 @@ update msg model =
       model 
         ! [ message
               <| SelectableTextMsg 
-              <| SelectableText.ParseText rawText
+              <| SelectableText.RenderText rawText
           ] 
 
 
