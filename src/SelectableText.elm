@@ -2,17 +2,18 @@ module SelectableText exposing
   ( Model
   , Msg (RenderText)
   , initialModel
+  , defaultOptions
   , view
   , update
   )
 
 {-| A selectable text component that renders provided text and lets the 
 user select words using mouse. All the elements of the selection are assigned a 
-`selected` css class. The model contains the selected phrase in form of a string
-to be used by the parent component.
+customizable css class. The model contains the selected phrase in form of a
+string to be used by the parent component.
 
 # Model
-@docs Model, initialModel
+@docs defaultOptions, Model, initialModel
 
 # Messages
 @docs Msg
@@ -35,18 +36,23 @@ import Dict exposing (Dict)
 
 
 -- MODEL
+type alias Options =
+  { id : String
+  , selectedElementClass : String
+  , placeholderText : String
+  }
 
 
-{-| The component model:
-  - **id** - Used as the HTML id attribute for the root tag
+{-| The component model. The `selectedPhrase` field contains the selected phrase
+as a string which can be read by the parent component.
 -}
 type alias Model =
-  { id : String
-  , text : Text
+  { text : Text
   , mouseOverWordNo : Maybe ElementNo
   , selecting : Bool
   , selection : Maybe Selection
   , selectedPhrase : Maybe String
+  , options : Options
   }
 
 
@@ -89,22 +95,41 @@ type alias Selection =
   (ElementNo, ElementNo, ElementNo)
 
 
-{-| Initialize the component. Expects user to provide id and a placeholder text
-that will be displayed until a text is provided by the parent using `RenderText`
-message.
+{-| Default component options:
+  - **id** - The HTML id attribute for the root tag
+  - **selectedElementClass** - The CSS class of the selected elements
+  - **placeholderText** - A string that will be displayed until a text is
+  provided by the parent using the `RenderText` message
+-}
+defaultOptions : Options
+defaultOptions =
+  { id = "text"
+  , selectedElementClass = "selected"
+  , placeholderText = ""
+  }
 
 
-    selectableTextModel = SelectableText.initialModel "my-text" "Loading..."
+{-| Initialize the component. Expects user to provide a `defaultOptions`
+record with desired extensions.
+
+    import SelectableText exposing (defaultOptions)
+
+    selectableTextModel = 
+      SelectableText.initialModel 
+        { defaultOptions 
+          | id = "my-text"
+          , placeholderText = "Loading..."
+          }
   
 -}
-initialModel : String -> String -> Model
-initialModel id' placeholderText =
-  { id = id'
-  , text = Dict.singleton 0 (Word placeholderText, False)
+initialModel : Options -> Model
+initialModel options =
+  { text = Dict.singleton 0 (Word options.placeholderText, False)
   , mouseOverWordNo = Nothing
   , selecting = False
   , selection = Nothing
   , selectedPhrase = Nothing
+  , options = options
   }
 
 
@@ -144,13 +169,13 @@ type Msg
 {-| The selectable text view. Renders a `div` element containing the text.
 -}
 view : Model -> Html Msg
-view model = 
+view { text, options } = 
   let
-    paragraphs =
-      List.map viewParagraph (Dict.toList model.text |> splitIntoParagraphs)
+    paragraphs = 
+      List.map (viewParagraph options) (Dict.toList text |> splitIntoParagraphs)
   in
     div 
-      [ id model.id 
+      [ id options.id 
       , onMouseDown StartSelecting
       , onMouseUp StopSelecting 
       ] 
@@ -181,20 +206,22 @@ splitIntoParagraphs elements =
               []
 
 
-viewParagraph : Paragraph -> Html Msg
-viewParagraph paragraph =
-  p [] (List.map viewElement paragraph)
+viewParagraph : Options -> Paragraph -> Html Msg
+viewParagraph options paragraph =
+  p [] (List.map (viewElement options) paragraph)
 
 
-viewElement : NumberedElementWithMetadata -> Html Msg
-viewElement (no, (element, isSelected)) =
+viewElement : Options -> NumberedElementWithMetadata -> Html Msg
+viewElement { selectedElementClass } (no, (element, isSelected)) =
   case element of
     Word w ->
       let
         classNode =
           if isSelected
-            then [ class "selected" ]
-            else [ ]
+            then
+              [ class selectedElementClass ]
+            else
+              [ ]
         attributes =
           [ onMouseEnter (MouseEnteredWord no)
           , onMouseLeave (MouseLeftWord no)
@@ -203,10 +230,11 @@ viewElement (no, (element, isSelected)) =
       in
         span attributes [ text w ]
     Punctuation p ->
-      if isSelected then 
-        span [ class "selected" ] [ text p ]
-      else 
-        text p
+      if isSelected 
+        then
+          span [ class selectedElementClass ] [ text p ]
+        else
+          text p
     ParagraphBreak ->
       text ""
 
@@ -251,15 +279,17 @@ update msg model =
     MouseEnteredWord no ->
       let
         newSelection =
-          if model.selecting then
+          if model.selecting 
+            then 
               Just <| recalculateSelection no model.selection
-          else
+            else 
               model.selection
         newText = 
-          if model.selecting then
-            markSelection newSelection model.text
-          else
-            model.text
+          if model.selecting
+            then
+              markSelection newSelection model.text
+            else
+              model.text
         newModel =
           { model
             | mouseOverWordNo = (Just no)

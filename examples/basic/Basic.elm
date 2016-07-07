@@ -6,7 +6,7 @@ import Html.App as Html
 import Html.Attributes exposing (id)
 import Html.Lazy exposing (lazy)
 import Task exposing (Task)
-import SelectableText
+import SelectableText exposing (defaultOptions)
 
 
 -- MODEL
@@ -20,7 +20,13 @@ type alias Model =
 init : (Model, Cmd Msg)
 init =
   let
-    initialModel = Model <| SelectableText.initialModel "my-text" "Loading..."
+    initialModel =
+      Model 
+        <| SelectableText.initialModel 
+             { defaultOptions 
+               | id = "my-text"
+               , placeholderText = "Loading..."
+               }
   in 
     initialModel ! [ getRawText ]
 
