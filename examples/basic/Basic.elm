@@ -143,7 +143,6 @@ update msg ({ selectableTextModel } as model) =
       let
         newMaxSelectionLength =
           String.toInt inputtedLength
-            -- |> Result.toMaybe
         options =
           selectableTextModel.options
       in
