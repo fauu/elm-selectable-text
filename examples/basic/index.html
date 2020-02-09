@@ -22,7 +22,7 @@
       }
 
       h1 {
-        margin-bottom: 1em; 
+        margin-bottom: 1em;
       }
 
       #options {
@@ -47,7 +47,7 @@
 
       input {
         margin: 0 1.3em 0 0;
-        width: 2.5em; 
+        width: 2.5em;
       }
 
       input[type="text"] {
@@ -56,18 +56,18 @@
 
       #phrase-container {
         margin-left: 1.6em;
-        margin-bottom: 1em; 
+        margin-bottom: 1em;
         font-weight: bold;
       }
 
       #phrase-container > span {
         font-style: italic;
-        margin-left: 0.2em; 
+        margin-left: 0.2em;
         background: #FFF;
         padding: 0.1em 0.3em;
         font-weight: normal;
       }
-      
+
       #my-text {
         font-family: Georgia, Times, Times New Roman, serif;
         font-size: 18px;
@@ -99,7 +99,7 @@
 
     <script src="basic.js"></script>
     <script>
-      Elm.Basic.embed(document.getElementById("elm-target"));
+      Elm.Basic.init({ node: document.getElementById("elm-target") });
     </script>
   </body>
 </html>
