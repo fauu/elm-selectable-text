@@ -1,4 +1,4 @@
 all: basic-example
 
 basic-example:
-	cd .. && elm make --warn examples/basic/Basic.elm --output=examples/basic/basic.js
+	cd .. && elm make examples/basic/Basic.elm --output=examples/basic/basic.js
