@@ -2,12 +2,12 @@ module Basic exposing (main)
 
 
 import Html exposing (Html, div, input, label, span, text)
-import Html.App as Html
 import Html.Lazy exposing (lazy)
-import Html.Attributes exposing (id, checked, placeholder, type')
+import Html.Attributes exposing (id, checked, placeholder, type_)
 import Html.Events exposing (onCheck, onInput)
 import String
 import Result
+import Browser
 import Task exposing (Task)
 import SelectableText exposing (defaultOptions)
 
@@ -20,20 +20,20 @@ type alias Model =
   }
 
 
-init : (Model, Cmd Msg)
-init =
+init : () -> (Model, Cmd Msg)
+init _ =
   let
     initialModel =
-      Model 
-        <| SelectableText.initialModel 
-             { defaultOptions 
+      Model
+        <| SelectableText.initialModel
+             { defaultOptions
                | id = "my-text"
                , placeholderText = "Loading..."
                , allowInterparagraphSelection = True
                , maxSelectionLength = Nothing
                }
-  in 
-    initialModel ! [ getRawText ]
+  in
+    (initialModel, Cmd.batch [ getRawText ])
 
 
 -- MESSAGES
@@ -53,7 +53,7 @@ type Msg
 
 view : Model -> Html Msg
 view { selectableTextModel } =
-  div [] 
+  div []
     [ lazy viewOptions selectableTextModel
     , lazy viewSelectedPhrase selectableTextModel.selectedPhrase
     , Html.map SelectableTextMsg (SelectableText.view selectableTextModel)
@@ -65,24 +65,22 @@ viewOptions { options } =
   let
     maxSelectionLengthString =
       case options.maxSelectionLength of
-        Just length ->
-          toString length
-        Nothing ->
-          ""
+        Just length -> String.fromInt length
+        Nothing     -> ""
   in
     div [ id "options" ]
       [ label []
-          [ input 
-              [ type' "checkbox"
-              , checked options.allowInterparagraphSelection 
+          [ input
+              [ type_ "checkbox"
+              , checked options.allowInterparagraphSelection
               , onCheck AllowInterparagraphSelection
               ]
               []
           , text "Allow selection to span across multiple paragraphs"
           ]
       , label []
-          [ input 
-              [ type' "text"
+          [ input
+              [ type_ "text"
               , placeholder maxSelectionLengthString
               , onInput MaxSelectionLength
               ]
@@ -94,7 +92,7 @@ viewOptions { options } =
 
 viewSelectedPhrase : Maybe String -> Html Msg
 viewSelectedPhrase maybeSelectedPhrase =
-  div [ id "phrase-container" ] 
+  div [ id "phrase-container" ]
     [ text "Selected phrase: "
     , span [ ] [ text <| Maybe.withDefault "–" maybeSelectedPhrase ]
     ]
@@ -106,83 +104,76 @@ viewSelectedPhrase maybeSelectedPhrase =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg ({ selectableTextModel } as model) =
   case msg of
-    NoOp ->
-      model ! []
+    NoOp -> (model, Cmd.none)
 
     SelectableTextMsg subMsg ->
       let
-        (newSelectableTextModel, selectableTextCmd) = 
+        (newSelectableTextModel, selectableTextCmd) =
           SelectableText.update subMsg selectableTextModel
       in
-        { model | selectableTextModel = newSelectableTextModel } 
-          ! [ Cmd.map SelectableTextMsg selectableTextCmd ]
+        ({ model | selectableTextModel = newSelectableTextModel }
+        , Cmd.batch [ Cmd.map SelectableTextMsg selectableTextCmd ])
 
-    RawTextUnavailable _ ->
-      model ! []
+    RawTextUnavailable _ -> (model, Cmd.none)
 
     RawTextReady rawText ->
-      model 
-        ! [ message
-              <| SelectableTextMsg 
+        (model, Cmd.batch [ message
+              <| SelectableTextMsg
               <| SelectableText.RenderText rawText
-          ] 
+          ])
 
-    -- don't do this at home, 
+    -- don't do this at home,
     -- TODO: Think about whether to provide a way to update the options
     AllowInterparagraphSelection bool ->
       let
         options =
           selectableTextModel.options
       in
-        { model 
-          | selectableTextModel = 
-              { selectableTextModel 
-                | options = 
-                    { options 
-                      | allowInterparagraphSelection = bool 
+        ({ model
+          | selectableTextModel =
+              { selectableTextModel
+                | options =
+                    { options
+                      | allowInterparagraphSelection = bool
                       }
-                } 
-          }
-          ! [ ]
+                }
+          }, Cmd.none)
 
     MaxSelectionLength inputtedLength ->
       let
-        newMaxSelectionLength = 
-          String.toInt inputtedLength 
-            |> Result.toMaybe
+        newMaxSelectionLength =
+          String.toInt inputtedLength
         options =
           selectableTextModel.options
       in
-        { model 
-          | selectableTextModel = 
-              { selectableTextModel 
-                | options = 
-                    { options 
+        ({ model
+          | selectableTextModel =
+              { selectableTextModel
+                | options =
+                    { options
                       | maxSelectionLength = newMaxSelectionLength
                       }
-                } 
-          }
-          ! [ ]
+                }
+          }, Cmd.none)
 
 
 
 message : Msg -> Cmd Msg
 message msg =
-  Task.perform identity identity (Task.succeed msg)
+  Task.perform identity (Task.succeed msg)
 
 
 getRawText : Cmd Msg
 getRawText =
-  Task.perform RawTextUnavailable RawTextReady (Task.succeed sampleText)
+  Task.perform RawTextReady (Task.succeed sampleText)
 
 
-main : Program Never
 main =
-  Html.program
+  Browser.element
     { init = init
-    , view = view
     , update = update
     , subscriptions = \_ -> Sub.none
+    , view = view
     }
 
 sampleText : String
@@ -192,5 +183,3 @@ L’asile de vieillards est à Marengo, à quatre-vingts kilomètres d’Alger. 
 J’ai pris l’autobus à deux heures. Il faisait très chaud. J’ai mangé au restaurant, chez Céleste, comme d’habitude. Ils avaient tous beaucoup de peine pour moi et Céleste m’a dit : «On n’a qu’une mère.» Quand je suis parti, ils m’ont accompagné à la porte. J’étais un peu étourdi parce qu’il a fallu que je monte chez Emmanuel pour lui emprunter une cravate noire et un brassard. Il a perdu son oncle, il y a quelques mois.
 J’ai couru pour ne pas manquer le départ. Cette hâte, cette course, c’est à cause de tout cela sans doute, ajouté aux cahots, à l’odeur d’essence, à la réverbération de la route et du ciel, que je me suis assoupi. J’ai dormi pendant presque tout le trajet. Et quand je me suis réveillé, j’étais tassé contre un militaire qui m’a souri et qui m’a demandé si je venais de loin. J’ai dit «oui» pour n’avoir plus à parler.
 """
-
-
